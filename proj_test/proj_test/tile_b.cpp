@@ -15,6 +15,7 @@ tile_b::tile_b(bool b, int x, int y, sf::Sprite t) {
 		xcord = x;
 		ycord = y;
 		tile = t;
+<<<<<<< HEAD:proj_test/proj_test/tile_b.cpp
 		tile.setPosition(200+x*40.f, 50+y*40.f);
 		tile_box = tile.getGlobalBounds();
 }
@@ -31,3 +32,9 @@ void tile_b::check_interaction(sf::RenderWindow& window) {
 	}
 	else tile.setColor(sf::Color::Green);
 }
+=======
+}
+void tile_b::show_tile(sf::RenderWindow& window) {
+		window.draw(tile);
+}
+>>>>>>> cebeb1624b917a18b8b5045b5eb6ef2c578cd745:GraTurowa/GraTurowa/tile_b.cpp
