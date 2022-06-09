@@ -25,7 +25,7 @@ void tile_b::check_interaction(sf::RenderWindow& window) {
 	if (isSpriteHover(tile_box, window)) {
 		if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
 			tile.setColor(sf::Color::Red);
-			
+			std::cout << xcord << " x i y " << ycord<<std::endl;
 		}
 		else tile.setColor(sf::Color(14, 136, 200, 255));
 	}

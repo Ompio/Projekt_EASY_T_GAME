@@ -142,10 +142,12 @@
     <ClCompile Include="f_sfml.cpp" />
     <ClCompile Include="GraTurowa.cpp" />
     <ClCompile Include="tile_b.cpp" />
+    <ClCompile Include="unit.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="f_sfml.h" />
     <ClInclude Include="tile_b.h" />
+    <ClInclude Include="unit.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

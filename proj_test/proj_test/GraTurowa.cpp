@@ -105,7 +105,7 @@ int main()
              for (int j = 0; j < 11; j++) {
                  vec[i][j].check_interaction(window);
                  vec[i][j].show_tile(window);
-                 std::cout << std::endl;
+                 //std::cout << std::endl;
              };
 
         sf::Event event;
