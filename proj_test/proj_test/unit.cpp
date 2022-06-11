@@ -2,7 +2,7 @@
 
 unit::unit()
 {
-	if (!looks.loadFromFile("battle_tile_null.png"))
+	if (!looks.loadFromFile("BLOB.png"))
 	{
 		std::cout << "nie udalo sie otworzyc pliku";
 	}
@@ -14,7 +14,7 @@ unit::unit()
 	health=1000;
 	health_b=1000;
 	speed=5;
-	quantity = 1;
+	amount = 1;
 }
 
 unit::unit(int id, int a, int o, int min, int max, int zd, int z, int s, sf::Sprite l int q)

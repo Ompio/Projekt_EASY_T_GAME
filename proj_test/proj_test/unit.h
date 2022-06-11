@@ -1,6 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include "tile_b.h"
 class unit
 {
 	int unit_id;
@@ -12,12 +13,12 @@ class unit
 	int health;
 	int speed;
 	sf::Texture looks;
-	int ;
+	int amount;
 public:
 	unit();
 	unit(int id, int a, int o, int min, int max, int zd, int z, int s, sf::Sprite l);
 	void fight();
 	void show_range(int& map);
-	void move(int& map);
+	void move(int& map,tile_b);
 };
 

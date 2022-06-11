@@ -57,17 +57,13 @@ int main()
     {
         std::cout << "nie udalo sie otworzyc pliku";
     }
-    sf::Texture battle_tile_hover;
-    if (!battle_tile_hover.loadFromFile("battle_tile_hover.png"))
-    {
-        std::cout << "nie udalo sie otworzyc pliku";
-    }
 
     sf::Sprite battle_tile;
     
     battle_tile.setScale(1.f, 1.f);
 
     battle_tile.setTexture(battle_tile_basic);
+
     //ustawianie tekstury plytki walki
     
     sf::FloatRect tile_box = battle_tile.getGlobalBounds();
