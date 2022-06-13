@@ -1,8 +1,9 @@
 ﻿//#include <SFML/Graphics.hpp>
 //#include <SFML/Window.hpp>
 //#include <iostream>
-#include "f_sfml.h"
+#include "functions.h"
 #include "tile_b.h"
+#include "unit.h"
 #include <vector>
 
 int main()
@@ -65,17 +66,27 @@ int main()
     battle_tile.setTexture(battle_tile_basic);
 
     //ustawianie tekstury plytki walki
-    
-    sf::FloatRect tile_box = battle_tile.getGlobalBounds();
-    battle_tile.setOrigin(tile_box.width/2,tile_box.height/2);
-    //battle_tile.setPosition(50.f, 25.f);
-    tile_box = battle_tile.getGlobalBounds();
-    std::cout << tile_box.height << tile_box.width;
+   
     
     //dane
     
-    int mapa[15][11];
-    tile_b map[15][11];
+    std::vector<texturesL> loadedEntities;
+    unit blob;
+    loadedEntities.push_back(blob.pushToLoaded());
+
+    std::vector<std::vector<int> > mapa;
+    for (int i = 0; i < 15; i++) {
+        std::vector<int> v1;
+        for (int j = 0; j < 11; j++) {
+            v1.push_back(0);
+        }
+        mapa.push_back(v1);
+    }
+
+    mapa[3][5] = 99;
+    coords PresedTile;
+    PresedTile.y = 0;
+    clearIBuffor(PresedTile);
   
     std::vector<std::vector<tile_b> > vec;
     for (int i = 0; i < 15; i++) {
@@ -83,7 +94,7 @@ int main()
         std::vector<tile_b> v1;
 
         for (int j = 0; j < 11; j++) {
-            v1.push_back(tile_b (true, i, j, battle_tile));
+            v1.push_back(tile_b (true, i, j, battle_tile_basic));
         }
         vec.push_back(v1);
     }
@@ -97,11 +108,22 @@ int main()
          window.clear();
 
          window.draw(tlo);
+
          for (int i = 0; i < 15; i++)
              for (int j = 0; j < 11; j++) {
-                 vec[i][j].check_interaction(window);
+                 vec[i][j].tile_properties(window,mapa,PresedTile);
+                 if (mapa[i][j] >= 0 && mapa[i][j] <= 1)
                  vec[i][j].show_tile(window);
-                 //std::cout << std::endl;
+                 else
+                 {
+
+                     sf::Texture entityTexture;
+                     for (int k = 0; k < loadedEntities.size(); k++)
+                         if (loadedEntities[k].entity_id == mapa[i][j])
+                             entityTexture = loadedEntities[k].texture;
+                     
+                     vec[i][j].show_entity(window, entityTexture);
+                 }
              };
 
         sf::Event event;
@@ -120,16 +142,27 @@ int main()
 
         }
         //^eventy testowe - juz nie testowe
+        
+        if (high == true) {
+            blob.show_range(mapa);
+            high = false;
+        }
+       if (interactionBuffor(PresedTile)) {
+            blob.move(mapa,PresedTile);
+            clearIBuffor(PresedTile);
+            clearMap(mapa);
+            high = true;
+        }
 
-        
-        
-        
+        /*to do:
+        1. zmienić rodzaj loadedEntities na bardziej optymalny niz vector
+        2. zrobić porządek z skalą i origin płytek i obiektów bo przyprawia o płacz Q-Q
+        */
 
         
 
         window.display(); //NIe ruszaj
      }
-     //miałem spory zastuj z powodu choroby ostatnio :(
 
     return 0;
 }

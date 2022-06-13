@@ -18,7 +18,7 @@
     <ClCompile Include="tile_b.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="f_sfml.cpp">
+    <ClCompile Include="functions.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
     <ClCompile Include="GraTurowa.cpp">
@@ -29,7 +29,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="f_sfml.h">
+    <ClInclude Include="functions.h">
       <Filter>Pliki źródłowe</Filter>
     </ClInclude>
     <ClInclude Include="tile_b.h">
