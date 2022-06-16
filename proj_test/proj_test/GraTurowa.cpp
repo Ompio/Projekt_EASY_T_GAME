@@ -6,6 +6,8 @@
 #include "unit.h"
 #include <vector>
 
+
+
 int main()
 {
     sf::RenderWindow window(sf::VideoMode(1000, 500), "Fun and interactive game");
@@ -23,24 +25,6 @@ int main()
     }
     sf::Sprite miastoS;
     miastoS.setTexture(miastoT);
-
-
-    sf::Texture usuT;
-    usuT.setSmooth(true);
-    if (!usuT.loadFromFile("sus.png"))
-    {
-        std::cout << "nie udalo sie otworzyc pliku";
-    }
-    sf::Sprite usuS;
-
-
-    sf::Texture usuHT;
-    //usuHT.setSmooth(true);
-    if (!usuHT.loadFromFile("susHIGH.png"))
-    {
-        std::cout << "nie udalo sie otworzyc pliku";
-    }
-
     
     //tekstury docelowe
 
@@ -67,12 +51,7 @@ int main()
 
     //ustawianie tekstury plytki walki
    
-    
-    //dane
-    
-    std::vector<texturesL> loadedEntities;
-    unit blob;
-    loadedEntities.push_back(blob.pushToLoaded());
+   
 
     std::vector<std::vector<int> > mapa;
     for (int i = 0; i < 15; i++) {
@@ -83,12 +62,16 @@ int main()
         mapa.push_back(v1);
     }
 
-    mapa[3][5] = 99;
+
+    mapa[13][5] = 99;
+    mapa[13][6] = 11;
+
     coords PresedTile;
     PresedTile.y = 0;
     clearIBuffor(PresedTile);
+    bool Mouse_click_buffor = true;
   
-    std::vector<std::vector<tile_b> > vec;
+    std::vector<std::vector<tile_b> > tiles_vector;
     for (int i = 0; i < 15; i++) {
         // Vector to store column elements
         std::vector<tile_b> v1;
@@ -96,67 +79,89 @@ int main()
         for (int j = 0; j < 11; j++) {
             v1.push_back(tile_b (true, i, j, battle_tile_basic));
         }
-        vec.push_back(v1);
+        tiles_vector.push_back(v1);
     }
+
+    std::vector<unit_coords> loadedEntities;
+    unit blob;
+    unit red(11, 20, 10, 10, 5, 200, 20, 4, "PLOMYK1.png", 10);
+    loadedEntities.push_back(blob.pushToLoaded(mapa));
+    loadedEntities.push_back(red.pushToLoaded(mapa));
+
+
+    //dane
+
+
+
 
     tlo.setTexture(walka_tlo);
     //ustawianie tekstury tła
 
-     while (window.isOpen())
+    while (window.isOpen())
     {
-         //std::cout << sf::Mouse::getPosition(window).x << " " << sf::Mouse::getPosition(window).y << std::endl;
-         window.clear();
+        //std::cout << sf::Mouse::getPosition(window).x << " " << sf::Mouse::getPosition(window).y << std::endl;
+        window.clear();
 
-         window.draw(tlo);
+        window.draw(tlo);
 
-         for (int i = 0; i < 15; i++)
-             for (int j = 0; j < 11; j++) {
-                 vec[i][j].tile_properties(window,mapa,PresedTile);
-                 if (mapa[i][j] >= 0 && mapa[i][j] <= 1)
-                 vec[i][j].show_tile(window);
-                 else
-                 {
-
-                     sf::Texture entityTexture;
-                     for (int k = 0; k < loadedEntities.size(); k++)
-                         if (loadedEntities[k].entity_id == mapa[i][j])
-                             entityTexture = loadedEntities[k].texture;
-                     
-                     vec[i][j].show_entity(window, entityTexture);
-                 }
-             };
+        for (int i = 0; i < 15; i++)
+            for (int j = 0; j < 11; j++) {
+                tiles_vector[i][j].tile_properties(window, mapa, PresedTile);
+                if (mapa[i][j] >= 0 && mapa[i][j] <= 2)
+                    tiles_vector[i][j].show_tile(window);
+            };
+        for(auto& entity : loadedEntities) {
+            sf::Texture entityTexture;
+            entityTexture = entity.texture;
+            tiles_vector[entity.place.x][entity.place.y].show_entity(window, entityTexture);
+        }
 
         sf::Event event;
         while (window.pollEvent(event))
         {
-            if (event.type == sf::Event::Closed) 
+            if (event.type == sf::Event::Closed)
                 window.close();
             if (event.type == sf::Event::Resized) {
                 window.setSize(sf::Vector2u(1000, 500));
             }
-            
-            if (event.type == sf::Event::MouseButtonPressed)
-            {
 
+            if (event.type == sf::Event::MouseButtonReleased)
+            {
+                if (event.key.code == sf::Mouse::Left) {
+                    Mouse_click_buffor = true;
+                }
             }
 
         }
         //^eventy testowe - juz nie testowe
-        
-        if (high == true) {
-            blob.show_range(mapa);
-            high = false;
+
+        if(high) {
+            if (blob.check_living(mapa,loadedEntities)) {
+                blob.show_range(mapa,loadedEntities);
+                //blob.show_attack(mapa, loadedEntities);
+                high = false;
+            }
         }
-       if (interactionBuffor(PresedTile)) {
-            blob.move(mapa,PresedTile);
-            clearIBuffor(PresedTile);
-            clearMap(mapa);
-            high = true;
+        if (Mouse_click_buffor) {
+            if (interactionBuffor(PresedTile)) {
+                blob.move(mapa, PresedTile, loadedEntities);
+                //blob.attack_M(PresedTile, loadedEntities);
+                clearIBuffor(PresedTile);
+                clearMap(mapa);
+                high = true;
+                blob.modify_Hp(-50);
+                blob.check_living(mapa, loadedEntities);
+                Mouse_click_buffor = false;
+            }
         }
 
+       //^strefa placzu i histerii
+
         /*to do:
-        1. zmienić rodzaj loadedEntities na bardziej optymalny niz vector
-        2. zrobić porządek z skalą i origin płytek i obiektów bo przyprawia o płacz Q-Q
+        1. zamienic wszystkie unit_coords na klase  
+        2. zrobic porzadek z skala i origin płytek i obiektów bo przyprawia o placz Q-Q
+        3. usunac(jest uzywana ale mniej inwazyjnie) funkcję find_in_map i poprawić check_living
+
         */
 
         

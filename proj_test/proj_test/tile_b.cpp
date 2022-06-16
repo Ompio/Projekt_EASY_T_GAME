@@ -1,5 +1,5 @@
 #include "tile_b.h"
-//#include "f_sfml.h"
+
 tile_b::tile_b() {
 	if (!battle_tile_null.loadFromFile("battle_tile_null.png"))
 	{
@@ -10,6 +10,7 @@ tile_b::tile_b() {
 	xcord = 0;
 	ycord = 0;
 }
+
 tile_b::tile_b(bool b, int x, int y, sf::Texture t) {
 		empty = b;
 		xcord = x;
@@ -40,17 +41,53 @@ void tile_b::tile_properties(sf::RenderWindow& window, std::vector<std::vector<i
 	{
 	case 0:
 		tile.setColor(sf::Color{ 55, 55, 55, 55 });
+		x.unit = false;
 		break;
 	case 1:
 		check_interaction(window,x);
+		x.unit = false;
+		break;
+	case 2:
+		check_interaction(window, x);
+		x.unit = false;
 		break;
 	default:
-		tile.setColor(sf::Color::Transparent);
+		/*check_interaction(window, x);
+		x.unit = true;*/
 		break;
 	}
 }
 
 void tile_b::check_interaction(sf::RenderWindow& window, coords& x) {
+	/*bool was_pressed=false;
+	if(was_pressed)tile.setColor(sf::Color::Red);
+	else tile.setColor(sf::Color(14, 136, 200, 255));
+	if (isSpriteHover(tile_box, window)) {
+		sf::Event event;
+		while (window.pollEvent(event))
+		{
+			
+				
+				if (event.type == sf::Event::MouseButtonPressed)
+					if (event.key.code == sf::Mouse::Left)
+					{
+						was_pressed = true;
+					}
+				if (event.type == sf::Event::MouseButtonReleased) 
+					if (event.key.code == sf::Mouse::Left)
+					{
+						x.x = xcord;
+						x.y = ycord;
+						was_pressed = false;
+					}
+				
+		}
+		
+		
+	}
+	else tile.setColor(sf::Color::Green);*/
+
+	
 	if (isSpriteHover(tile_box, window)) {
 		if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
 			tile.setColor(sf::Color::Red);

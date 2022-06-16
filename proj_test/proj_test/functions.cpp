@@ -10,6 +10,7 @@ bool isSpriteHover(sf::FloatRect sprite, sf::RenderWindow& window)
     }
     return false;
 }
+
 coords find_in_map(std::vector<std::vector<int> >&map, int entity_id) {
     for (int i = 0; i < 15; i++) {
         for (int j = 0; j < 11; j++) {
@@ -22,8 +23,8 @@ coords find_in_map(std::vector<std::vector<int> >&map, int entity_id) {
         }
     }
     coords place;
-    place.x = 0;
-    place.y = 0;
+    place.x = -1;
+    place.y = -1;
     return place;
 }
 
@@ -45,4 +46,11 @@ void clearMap(std::vector<std::vector<int>>& map)
         for (int j = 0; j < 11; j++) {
             if (map[i][j] == 1)map[i][j] = 0;
         };
+}
+
+bool coords::operator==(const coords& a)
+{
+    if (a.x == x && a.y == y)
+        return true;
+    else return false;
 }

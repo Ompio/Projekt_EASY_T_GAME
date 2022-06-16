@@ -15,13 +15,23 @@ class unit
 	int health;
 	int speed;
 	int amount;
+	coords place;
+
 public:
 	unit();
-	unit(int id, int a, int o, int min, int max, int zd, int z, int s, std::string filename, int q);
+	unit(int id, int a, int def, int min, int max, int zd, int z, int s, std::string filename, int q);
 	void fight(unit& enemy);
-	void show_range(std::vector<std::vector<int> >& map);
-	void move(std::vector<std::vector<int> >& map,coords x);
-	sf::Texture shareTexture();
-	texturesL pushToLoaded();
+	void attack_M(coords x, std::vector<unit_coords>& loadedEntities);
+	void deal_damage(unit& enemy);
+	void modify_Hp(int hp_value);
+	bool check_living(std::vector<std::vector<int> >& map, std::vector<unit_coords>& loadedEntities);
+	void show_range(std::vector<std::vector<int> >& map,std::vector<unit_coords>& loadedEntities);
+	void show_attack(std::vector<std::vector<int> >& map, std::vector<unit_coords>& loadedEntities);
+	void move(std::vector<std::vector<int> >& map,coords x, std::vector<unit_coords>& loadedEntities);
+	sf::Texture get_texture();
+	coords get_coords();
+	void set_coords(coords place_in);
+	unit_coords pushToLoaded(std::vector<std::vector<int> >& map);
+	~unit();
 };
 

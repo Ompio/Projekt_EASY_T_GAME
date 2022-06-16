@@ -11,6 +11,7 @@ class tile_b
 	sf::Texture battle_tile_basic;
 	sf::FloatRect tile_box;
 	struct interaction;
+	bool was_pressed = false;
  public:
 	tile_b();
 	tile_b(bool b, int x, int y, sf::Texture t);
