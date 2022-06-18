@@ -15,6 +15,7 @@ class tile_b
  public:
 	tile_b();
 	tile_b(bool b, int x, int y, sf::Texture t);
+	tile_b(bool b, int x, int y, sf::Sprite t);
 	void show_tile(sf::RenderWindow& window);
 	void show_entity(sf::RenderWindow& window, sf::Texture entityTexture);
 	void tile_properties(sf::RenderWindow& window, std::vector<std::vector<int> > map, coords& x);

@@ -18,10 +18,24 @@ tile_b::tile_b(bool b, int x, int y, sf::Texture t) {
 		battle_tile_basic = t;
 		tile.setTexture(battle_tile_basic);
 		tile.setPosition(200+x*40.f, 50+y*40.f);
-		entity.setScale(2.f, 2.f);
+		entity.setScale(3/2.f, 3/2.f);
 		entity.setOrigin(22.f, 42.f);
 		entity.setPosition(200 + x * 40.f, 50 + y * 40.f);
 		tile_box = tile.getGlobalBounds();
+}
+
+tile_b::tile_b(bool b, int x, int y, sf::Sprite t)
+{
+	empty = b;
+	xcord = x;
+	ycord = y;
+	tile = t;
+	if (xcord == -2)
+	tile.setPosition(200 + 16 * 40.f, 50 + y * 40.f);
+	if (xcord == -3)
+	tile.setPosition(205 + 17 * 40.f, 50 + y * 40.f);
+	tile.setScale(1/3.f, 1/3.f);
+	tile_box = tile.getGlobalBounds();
 }
 
 void tile_b::show_tile(sf::RenderWindow& window) {
@@ -41,15 +55,12 @@ void tile_b::tile_properties(sf::RenderWindow& window, std::vector<std::vector<i
 	{
 	case 0:
 		tile.setColor(sf::Color{ 55, 55, 55, 55 });
-		x.unit = false;
 		break;
 	case 1:
-		check_interaction(window,x);
-		x.unit = false;
+		check_interaction(window, x);
 		break;
 	case 2:
 		check_interaction(window, x);
-		x.unit = false;
 		break;
 	default:
 		/*check_interaction(window, x);
@@ -59,34 +70,6 @@ void tile_b::tile_properties(sf::RenderWindow& window, std::vector<std::vector<i
 }
 
 void tile_b::check_interaction(sf::RenderWindow& window, coords& x) {
-	/*bool was_pressed=false;
-	if(was_pressed)tile.setColor(sf::Color::Red);
-	else tile.setColor(sf::Color(14, 136, 200, 255));
-	if (isSpriteHover(tile_box, window)) {
-		sf::Event event;
-		while (window.pollEvent(event))
-		{
-			
-				
-				if (event.type == sf::Event::MouseButtonPressed)
-					if (event.key.code == sf::Mouse::Left)
-					{
-						was_pressed = true;
-					}
-				if (event.type == sf::Event::MouseButtonReleased) 
-					if (event.key.code == sf::Mouse::Left)
-					{
-						x.x = xcord;
-						x.y = ycord;
-						was_pressed = false;
-					}
-				
-		}
-		
-		
-	}
-	else tile.setColor(sf::Color::Green);*/
-
 	
 	if (isSpriteHover(tile_box, window)) {
 		if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {

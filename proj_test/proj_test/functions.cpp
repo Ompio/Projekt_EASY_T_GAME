@@ -1,4 +1,5 @@
 #include "functions.h"
+//#include "unit.h"
 
 bool isSpriteHover(sf::FloatRect sprite, sf::RenderWindow& window)
 {
@@ -40,17 +41,21 @@ void clearIBuffor(coords& x)
     x.x = -1;
 }
 
-void clearMap(std::vector<std::vector<int>>& map)
-{
-    for (int i = 0; i < 15; i++)
-        for (int j = 0; j < 11; j++) {
-            if (map[i][j] == 1)map[i][j] = 0;
-        };
-}
-
 bool coords::operator==(const coords& a)
 {
     if (a.x == x && a.y == y)
         return true;
     else return false;
+}
+
+coords::coords()
+{
+    x = -1;
+    y = -1;
+}
+
+coords::coords(int _x, int _y)
+{
+    x = _x;
+    y = _y;
 }
