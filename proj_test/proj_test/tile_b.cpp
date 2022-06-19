@@ -19,7 +19,7 @@ tile_b::tile_b(bool b, int x, int y, sf::Texture t) {
 		tile.setTexture(battle_tile_basic);
 		tile.setPosition(200+x*40.f, 50+y*40.f);
 		entity.setScale(3/2.f, 3/2.f);
-		entity.setOrigin(22.f, 42.f);
+		entity.setOrigin(19.f, 35.f);
 		entity.setPosition(200 + x * 40.f, 50 + y * 40.f);
 		tile_box = tile.getGlobalBounds();
 }
@@ -81,3 +81,7 @@ void tile_b::check_interaction(sf::RenderWindow& window, coords& x) {
 	}
 	else tile.setColor(sf::Color::Green);
 }
+
+
+//std::vector<std::pair<bool, std::shared_ptr<unit>>> loadedEntities
+//.second

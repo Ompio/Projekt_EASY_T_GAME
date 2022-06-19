@@ -11,10 +11,10 @@ unit::unit()
 	entity_id=99;
 	attack=10;
 	defense=4;
-	damage_max=20;
-	damage_min=10;
-	health=2000;
-	health_b=100;
+	damage_max=2000;
+	damage_min=1000;
+	health=10;
+	health_b=1;
 	speed=8;
 	amount = 1;
 }
@@ -36,14 +36,16 @@ unit::unit(int id, int a, int def, int min, int max, int zd, int z, int s, std::
 	amount = q;
 }
 
-void unit::attack_M(coords x, std::vector<std::shared_ptr<unit>>& loadedEntities)
+void unit::attack_M(coords x, std::vector<std::pair<bool,std::shared_ptr<unit>>>& loadedEntities)
 {
 	for (auto& entity : loadedEntities) {
-		if (entity->get_coords() == x) {
-			this->deal_damage(entity);
+		if (entity.second->get_coords() == x) {
+			this->deal_damage(entity.second);
 			std::cout << std::endl << " udalo sie zaatakowaæ jednostce " << entity_id << std::endl;
+			break;
 		}
 	}
+	
 	//this->deal_damage(enemy);
 }
 
@@ -55,6 +57,7 @@ void unit::deal_damage(std::shared_ptr<unit>& enemy)
 	for (int i = 0; i < amount; i++) {
 		damage += rand() % (damage_max - damage_min) + damage_min;
 	}
+	enemy->modify_Hp(-damage);
 	std::cout << std::endl << damage << " <- damage " << std::endl;
 }
 
@@ -65,11 +68,11 @@ void unit::modify_Hp(int hp_value)
 	std::cout <<"health :" << health <<" amount: " <<amount<< std::endl;
 }
 
-bool unit::check_living(std::vector<std::vector<int> >& map, std::vector<std::shared_ptr<unit>>& loadedEntities)
+bool unit::check_living(std::vector<std::vector<int> >& map, std::vector<std::pair<bool, std::shared_ptr<unit>>>& loadedEntities)
 {
-	std::vector<std::shared_ptr<unit>>::iterator it1 = loadedEntities.begin();;
+	std::vector<std::pair<bool, std::shared_ptr<unit>>>::iterator it1 = loadedEntities.begin();;
 	for (auto& entity : loadedEntities) {
-		if (entity->entity_id == entity_id) {
+		if (entity.second->entity_id == entity_id) {
 			break;
 		}
 
@@ -180,6 +183,16 @@ coords unit::get_coords()
 int unit::get_id()
 {
 	return entity_id;
+}
+
+int unit::get_speed()
+{
+	return speed;
+}
+
+int unit::get_hp()
+{
+	return health;
 }
 
 void unit::set_coords(coords place_in)

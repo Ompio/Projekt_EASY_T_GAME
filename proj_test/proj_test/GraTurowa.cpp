@@ -5,8 +5,13 @@
 #include "tile_b.h"
 #include "unit.h"
 #include <vector>
+#include <stack>
+#include <tuple>
+#include <ranges>
+#include <algorithm>
+#include "Ai.h"
 
-void clearMap(std::vector<std::vector<int>>& map, std::vector<std::shared_ptr<unit>>& loadedEntities)
+void clearMap(std::vector<std::vector<int>>& map, std::vector<std::pair<bool, std::shared_ptr<unit>>> loadedEntities)
 {
     coords on_map;
     for (int i = 0; i < 15; i++)
@@ -14,8 +19,8 @@ void clearMap(std::vector<std::vector<int>>& map, std::vector<std::shared_ptr<un
             if (map[i][j] <= 2)map[i][j] = 0;
         };
     for (auto& entity : loadedEntities) {
-        on_map = entity->get_coords();
-        map[on_map.x][on_map.y] = entity->get_id(); 
+        on_map = entity.second->get_coords();
+        map[on_map.x][on_map.y] = entity.second->get_id();
     }
 }
 
@@ -96,10 +101,14 @@ int main()
     coords PresedTile;
     PresedTile.y = 0;
     clearIBuffor(PresedTile);
-    bool Mouse_click_buffor = true;
+    bool Mouse_click_buffor = false;
     bool Move_Attack_buffor = false;
+    bool Ai_buffor = false;
     bool Attack_possibility = false;
     bool drawing_tiles = true;
+    bool kop_w_kalendarz = false;
+    bool stack_call = false;
+    bool tour_done = false;
     //^zmienne walki
   
     std::vector<std::vector<tile_b> > tiles_vector;
@@ -118,17 +127,29 @@ int main()
     //^ tekstury interfejsu
 
 
-    std::vector<std::shared_ptr<unit>> loadedEntities;
-    unit blob;
-    unit red(11, 20, 10, 10, 5, 200, 20, 4, "PLOMYK1.png", 10);
+    
 
-    loadedEntities.push_back(std::shared_ptr<unit>(new unit()));
-    loadedEntities.push_back(std::shared_ptr<unit>(new unit(11, 20, 10, 10, 5, 200, 20, 4, "PLOMYK1.png", 10)));
-    loadedEntities.push_back(std::shared_ptr<unit>(new unit(12, 20, 10, 10, 5, 200, 20, 4, "PLOMYK1.png", 10)));
+    std::vector<std::pair<bool,std::shared_ptr<unit>>> loadedEntities;
+    
 
-    loadedEntities[0]->set_coords(coords(0, 5));
-    loadedEntities[1]->set_coords(coords(13, 6));
-    loadedEntities[2]->set_coords(coords(13, 8));
+    loadedEntities.push_back(std::make_pair(true,std::shared_ptr<unit>(new unit())));
+    loadedEntities.push_back(std::make_pair(false, std::shared_ptr<unit>(new unit(11, 20, 10, 10, 5, 200, 20, 6, "PLOMYK1.png", 10))));
+    loadedEntities.push_back(std::make_pair(true, std::shared_ptr<unit>(new unit(12, 20, 10, 10, 5, 200, 20, 4, "PLOMYK2.png", 10))));
+    loadedEntities.push_back(std::make_pair(false, std::shared_ptr<unit>(new unit(13, 20, 10, 10, 5, 200, 20, 5, "PLOMYK1.png", 10))));
+    
+
+    loadedEntities[0].second->set_coords(coords(0, 7));
+    loadedEntities[1].second->set_coords(coords(13, 6));
+    loadedEntities[2].second->set_coords(coords(0, 10));
+    loadedEntities[3].second->set_coords(coords(14, 8));
+
+    std::ranges::sort(loadedEntities, [](std::pair<bool, std::shared_ptr<unit>> a, std::pair<bool, std::shared_ptr<unit>> b)
+        { return a.second->get_speed() > b.second->get_speed(); });
+
+    std::stack<int> wait_queue;
+
+    Ai enemy;
+
 
     int unit_tour = 0;
     //dane
@@ -155,8 +176,8 @@ int main()
             };
         for(auto& entity : loadedEntities) {
             sf::Texture entityTexture;
-            coords _place = entity->get_coords();
-            entityTexture = entity->get_texture();
+            coords _place = entity.second->get_coords();
+            entityTexture = entity.second->get_texture();
             tiles_vector[_place.x][_place.y].show_entity(window, entityTexture);
         }
 
@@ -179,6 +200,7 @@ int main()
             {
                 if (event.key.code == sf::Mouse::Left) {
                     Mouse_click_buffor = true;
+                    std::cout << "button released" << std::endl;
                 }
             }
 
@@ -187,28 +209,44 @@ int main()
         
         if (loadedEntities.empty() != true) {
             
+
             if (drawing_tiles) {
+                clearMap(map, loadedEntities);
                 if (!Move_Attack_buffor) {
-                    if (loadedEntities[unit_tour]->check_living(map, loadedEntities)) {
-                        loadedEntities[unit_tour]->show_range(map);
+                    if (loadedEntities[unit_tour].second->check_living(map, loadedEntities)) {
+                        loadedEntities[unit_tour].second->show_range(map);
                         drawing_tiles = false;
+                        if (!loadedEntities[unit_tour].first) {
+                            enemy.find_enemy(loadedEntities);
+                            Ai_buffor = true;
+                        }
+                        else Ai_buffor = false;
                     }
                 }
                 if (Move_Attack_buffor) {
-                    if (loadedEntities[unit_tour]->check_living(map, loadedEntities)) {
-                        loadedEntities[unit_tour]->show_attack(map);
+                    if (loadedEntities[unit_tour].second->check_living(map, loadedEntities)) {
+                        loadedEntities[unit_tour].second->show_attack(map);
                         drawing_tiles = false;
                     }
+                }
+                if (!loadedEntities[unit_tour].first) {
+                    Mouse_click_buffor = true;
+                    std::cout << "tura bota"<< unit_tour << std::endl;
+
                 }
             }
             //^wyswietlanie hud (bardziej modyfikacja)
 
+           
 
-            if (Mouse_click_buffor) {
+            if (Mouse_click_buffor||Ai_buffor) {
                 if (!Move_Attack_buffor) {
+                    if (Ai_buffor) {
+
+                    }
                     if (interactionBuffor(PresedTile) && PresedTile.x >= 0) {
-                        loadedEntities[unit_tour]->move(map, PresedTile);
-                        Attack_possibility = loadedEntities[unit_tour]->check_attack(map);
+                        loadedEntities[unit_tour].second->move(map, PresedTile);
+                        Attack_possibility = loadedEntities[unit_tour].second->check_attack(map);
 
                         Move_Attack_buffor = true;
                         Mouse_click_buffor = false;
@@ -218,11 +256,13 @@ int main()
                     //^interakcja ruchu
                     }
                     if (PresedTile.x==-2) {
-                        
+                        Attack_possibility = loadedEntities[unit_tour].second->check_attack(map);
 
                         Move_Attack_buffor = true;
                         Mouse_click_buffor = false;
                         drawing_tiles = true;
+                        if(!stack_call)
+                        wait_queue.push(unit_tour);
                         clearIBuffor(PresedTile);
                         clearMap(map, loadedEntities);
                     }
@@ -230,7 +270,7 @@ int main()
                     if (PresedTile.x == -3) {
 
 
-                        unit_tour++;
+                        tour_done = true;
                         Move_Attack_buffor = false;
                         Mouse_click_buffor = false;
                         drawing_tiles = true;
@@ -240,11 +280,15 @@ int main()
                     //^interakcja pominiecia walki/obrony
                 }   
                 if (Move_Attack_buffor) {
+                    if (Ai_buffor) {
+
+                    }
                     if (Attack_possibility) {
                         if (interactionBuffor(PresedTile) ) {
-                            loadedEntities[unit_tour]->attack_M(PresedTile, loadedEntities);
+                            loadedEntities[unit_tour].second->attack_M(PresedTile, loadedEntities);
 
-                            unit_tour++;
+                            kop_w_kalendarz = true;
+                            tour_done = true;
                             Move_Attack_buffor = false;
                             Mouse_click_buffor = false;
                             drawing_tiles = true;
@@ -254,7 +298,7 @@ int main()
                     }
                     else if (!Attack_possibility) {
 
-                        unit_tour++;
+                        tour_done = true;
                         Move_Attack_buffor = false;
                         Mouse_click_buffor = false;
                         drawing_tiles = true;
@@ -263,21 +307,51 @@ int main()
                     }
                 }
             }
-           
+            if (kop_w_kalendarz) {
+                for (auto& reaper : loadedEntities) {
+                    if (!reaper.second->check_living(map, loadedEntities))break;
+                    std::cout << "zniwiarz dziala" << std::endl;
+                }
+                kop_w_kalendarz = false;
+            }
+
            //std::cout << unit_tour;
-            if (unit_tour >= loadedEntities.size()) {
-                unit_tour = 0;
+            if (tour_done && !stack_call) {
+                  unit_tour++; 
+                  std::cout << "zakonczono ruch" << std::endl;
+                  tour_done = false;
+               if (unit_tour >= loadedEntities.size()) {
+                  stack_call = true;
+               }
+            }
+            if (stack_call) {
+                std::cout << "zakonczono ture, czas na czekajki" << std::endl;
+
+                if (wait_queue.empty()) {
+                    unit_tour = 0;
+                    std::cout << "nowa tura" << std::endl;
+                    tour_done = false;
+                    stack_call = false;
+                }
+
+                else {
+                    unit_tour = wait_queue.top();
+                    if (tour_done) {
+                        tour_done = false;
+                        wait_queue.pop();
+                    }
+                }
+
                 drawing_tiles = true;
             }
         }
        //^strefa placzu i histerii
 
         /*to do:  
-        * 1. kolejkowalnosc walki
-        2. zrobic porzadek z skala i origin płytek i obiektów bo przyprawia o placz Q-Q??????
-        3. otrzymywanie obrazen przez cel
-        4. typy jednostek (walka zasiegowa, zabija chociaz jeden)
-        5. wygrana/przegrana
+        1. ruch przeciwnika/nasz ruch
+        2. zrobic porzadek z skala i origin płytek i obiektów bo przyprawia o placz Q-Q?????? //mozliwe ze pozniej
+        3. typy jednostek (walka zasiegowa, zabija chociaz jeden)
+        4. wygrana/przegrana
 
         */
 
