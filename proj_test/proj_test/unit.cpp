@@ -1,5 +1,4 @@
 #include "unit.h"
-#include "functions.h"
 #include <cstdlib>
 
 unit::unit()
@@ -36,7 +35,7 @@ unit::unit(int id, int a, int def, int min, int max, int zd, int z, int s, std::
 	amount = q;
 }
 
-void unit::attack_M(coords x, std::vector<std::pair<bool,std::shared_ptr<unit>>>& loadedEntities)
+void unit::attack_M(std::vector<std::vector<int> >& map,coords x, std::vector<std::pair<bool,std::shared_ptr<unit>>>& loadedEntities)
 {
 	for (auto& entity : loadedEntities) {
 		if (entity.second->get_coords() == x) {
@@ -113,10 +112,15 @@ void unit::show_range(std::vector<std::vector<int> >& map)
 	}
 }
 
-void unit::show_attack(std::vector<std::vector<int>>& map)
+void unit::show_attack(std::vector<std::vector<int>>& map, std::vector<coords>& oponent_friend)
 {
+	for (auto& oponents : oponent_friend) {
+
+		map[oponents.x][oponents.y] = 2;
+	}
+
 	
-	for (int i = 1; i > 0; i--) {
+	/*for (int i = 1; i > 0; i--) {
 		for (int j = 1; j >= 0; j--) {
 
 			if (place.y + i < 11 && place.x + j < 15 && map[place.x + j][place.y + i] > 10) {
@@ -132,35 +136,53 @@ void unit::show_attack(std::vector<std::vector<int>>& map)
 				map[place.x - i][place.y + j] = 2;
 			}
 		}
-	}
+	}*/
 }
 
-
-
-bool unit::check_attack(std::vector<std::vector<int>>& map)
+bool unit::check_attack(std::vector<std::vector<int>>& map, bool orientation_m , std::vector<coords>& oponent_friend,std::vector<std::pair<bool, std::shared_ptr<unit>>>& loadedEntities)
 {
-	bool attack_possibility = false;
+	//bool orientation = orientation_m;
+	oponent_friend.clear();
+	//bool attack_possibility = false;
+	coords oponent_location;
+
 	for (int i = 1; i > 0; i--) {
 		for (int j = 1; j >= 0; j--) {
 
 			if (place.y + i < 11 && place.x + j < 15 && map[place.x + j][place.y + i] > 10 ){
-				attack_possibility = true;
+				oponent_location.x = (place.x + j);
+				oponent_location.y = (place.y + i);
+				oponent_friend.push_back(oponent_location);
 			}
 			if (place.y - i >= 0 && place.x - j >= 0 && map[place.x - j][place.y - i] > 10) {
-				attack_possibility = true;
+				oponent_location.x = (place.x - j);
+				oponent_location.y = (place.y - i);
+				oponent_friend.push_back(oponent_location);
 			}
 			if (place.x + i < 15 && place.y - j >= 0 && map[place.x + i][place.y - j] > 10) {
-				attack_possibility = true;
+				oponent_location.x = (place.x + i);
+				oponent_location.y = (place.y - j);
+				oponent_friend.push_back(oponent_location);
 			}
 			if (place.x - i >= 0 && place.y + j < 11 && map[place.x - i][place.y + j] > 10) {
-				attack_possibility = true;
+				oponent_location.x = (place.x - i);
+				oponent_location.y = (place.y + j);
+				oponent_friend.push_back(oponent_location);
 			}
 		}
 	}
-	return attack_possibility;
+	if (oponent_friend.empty())return false;
+	for (int i = 0; i < oponent_friend.size(); i++) {
+		for (auto& entity : loadedEntities)
+			if (!oponent_friend.empty() && oponent_friend[i] == entity.second->get_coords() && entity.first == orientation_m) {
+				oponent_friend.erase(oponent_friend.begin() + i);
+				i--;
+				break;
+			}
+	}
+	if (oponent_friend.empty())return false;
+	return true;
 }
-
-
 
 void unit::move(std::vector<std::vector<int> >& map, coords x)
 {
@@ -193,6 +215,16 @@ int unit::get_speed()
 int unit::get_hp()
 {
 	return health;
+}
+
+int unit::get_b_hp()
+{
+	return health_b;
+}
+
+int unit::get_quantity()
+{
+	return amount;
 }
 
 void unit::set_coords(coords place_in)

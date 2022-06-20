@@ -1,22 +1,28 @@
-﻿//#include <SFML/Graphics.hpp>
-//#include <SFML/Window.hpp>
-//#include <iostream>
-#include "functions.h"
+﻿#include <SFML/Graphics.hpp>
+#include <SFML/Window.hpp>
+#include <iostream>
+import functions_m;
 #include "tile_b.h"
 #include "unit.h"
+#include "runner.h"
+#include "shooter.h"
 #include <vector>
 #include <stack>
 #include <tuple>
 #include <ranges>
 #include <algorithm>
 #include "Ai.h"
+#include <thread>
+#include <semaphore>
+
+std::binary_semaphore sem1(1),sem2(1),V_access(1);
 
 void clearMap(std::vector<std::vector<int>>& map, std::vector<std::pair<bool, std::shared_ptr<unit>>> loadedEntities)
 {
     coords on_map;
     for (int i = 0; i < 15; i++)
         for (int j = 0; j < 11; j++) {
-            if (map[i][j] <= 2)map[i][j] = 0;
+            if (map[i][j] <= 3)map[i][j] = 0;
         };
     for (auto& entity : loadedEntities) {
         on_map = entity.second->get_coords();
@@ -24,26 +30,55 @@ void clearMap(std::vector<std::vector<int>>& map, std::vector<std::pair<bool, st
     }
 }
 
+void load_to_vector(std::vector<std::pair<bool, std::shared_ptr<unit>>>& _loadedEntities) {
+    if (sem1.try_acquire()) {
+        V_access.acquire();
+        _loadedEntities.push_back(std::make_pair(true, std::shared_ptr<unit>(new unit())));
+        _loadedEntities.push_back(std::make_pair(false, std::shared_ptr<unit>(new unit(11, 20, 10, 10, 5, 200, 20, 6, "PLOMYK1.png", 10))));
+        _loadedEntities.push_back(std::make_pair(true, std::shared_ptr<unit>(new unit(12, 20, 10, 10, 5, 200, 20, 4, "PLOMYK1.png", 10))));
+        V_access.release();
+    }
+    else if (sem2.try_acquire()) {
+        V_access.acquire();
+        _loadedEntities.push_back(std::make_pair(false, std::shared_ptr<unit>(new unit(13, 20, 10, 10, 5, 200, 20, 5, "PLOMYK1.png", 10))));
+        _loadedEntities.push_back(std::make_pair(true, std::shared_ptr<unit>(new runner(15, 20, 10, 10, 5, 200, 20, 7, "runner.png", 10))));
+        _loadedEntities.push_back(std::make_pair(false, std::shared_ptr<unit>(new runner(17, 20, 10, 10, 5, 200, 20, 7, "runner.png", 10))));
+        _loadedEntities.push_back(std::make_pair(true, std::shared_ptr<unit>(new shooter(16, 20, 10, 10, 5, 200, 20, 7, "SHOOTER.png", 10))));
+        V_access.release();
+    }
+}
 
 int main()
 {
     sf::RenderWindow window(sf::VideoMode(1000, 500), "Fun and interactive game");
 
-   
+   //font
+    sf::Font font;
+    if (!font.loadFromFile("arial.ttf"))
+    {
+        std::cout << "nie udalo sie otworzyc pliku fontu";
+    }
 
     //tekstury
-
-    //tekstury testowe
-    sf::Texture miastoT;
-    miastoT.setSmooth(true);
-    if (!miastoT.loadFromFile("bastion.jpg"))
+    
+    //tekstury docelowe
+    sf::Texture przegranaT;
+    if (!przegranaT.loadFromFile("przegrana.png"))
     {
         std::cout << "nie udalo sie otworzyc pliku";
     }
-    sf::Sprite miastoS;
-    miastoS.setTexture(miastoT);
-    
-    //tekstury docelowe
+    sf::Sprite przegranaS;
+    przegranaS.setTexture(przegranaT);
+    przegranaS.setPosition(135/2.f,0.f);
+
+    sf::Texture wygranaT;
+    if (!wygranaT.loadFromFile("wygrana.png"))
+    {
+        std::cout << "nie udalo sie otworzyc pliku";
+    }
+    sf::Sprite wygranaS;
+    wygranaS.setTexture(wygranaT);
+    wygranaS.setPosition(135 / 2.f, 0.f);
 
     sf::Texture walka_tlo;
     if (!walka_tlo.loadFromFile("walka_tlo.png"))
@@ -82,9 +117,7 @@ int main()
     }
     sf::Sprite wait_sprite;
     wait_sprite.setTexture(wait_texture);
-    //ustawianie tekstury plytki walki
-   
-   
+    //^tekstury
 
     std::vector<std::vector<int> > map;
     for (int i = 0; i < 15; i++) {
@@ -109,6 +142,10 @@ int main()
     bool kop_w_kalendarz = false;
     bool stack_call = false;
     bool tour_done = false;
+    bool win_lose_condition = false;
+
+
+    std::vector<coords> oponent_friend;
     //^zmienne walki
   
     std::vector<std::vector<tile_b> > tiles_vector;
@@ -117,7 +154,7 @@ int main()
         std::vector<tile_b> v1;
 
         for (int j = 0; j < 11; j++) {
-            v1.push_back(tile_b (true, i, j, battle_tile_basic));
+            v1.push_back(tile_b (true, i, j, battle_tile_basic, font));
         }
         tiles_vector.push_back(v1);
     }
@@ -131,25 +168,33 @@ int main()
 
     std::vector<std::pair<bool,std::shared_ptr<unit>>> loadedEntities;
     
+    std::thread t1(load_to_vector, std::ref(loadedEntities));
+    std::thread t2(load_to_vector, std::ref(loadedEntities));
+    t1.join();
+    t2.join();
+    //^watki
 
-    loadedEntities.push_back(std::make_pair(true,std::shared_ptr<unit>(new unit())));
-    loadedEntities.push_back(std::make_pair(false, std::shared_ptr<unit>(new unit(11, 20, 10, 10, 5, 200, 20, 6, "PLOMYK1.png", 10))));
-    loadedEntities.push_back(std::make_pair(true, std::shared_ptr<unit>(new unit(12, 20, 10, 10, 5, 200, 20, 4, "PLOMYK2.png", 10))));
-    loadedEntities.push_back(std::make_pair(false, std::shared_ptr<unit>(new unit(13, 20, 10, 10, 5, 200, 20, 5, "PLOMYK1.png", 10))));
-    
+    //tworzenie vektora jednostek
 
     loadedEntities[0].second->set_coords(coords(0, 7));
     loadedEntities[1].second->set_coords(coords(13, 6));
     loadedEntities[2].second->set_coords(coords(0, 10));
     loadedEntities[3].second->set_coords(coords(14, 8));
+    loadedEntities[4].second->set_coords(coords(0, 4));
+    loadedEntities[5].second->set_coords(coords(13, 1));
+    loadedEntities[6].second->set_coords(coords(0, 1));
+    
+    //pozycjonowanie jednostek
 
     std::ranges::sort(loadedEntities, [](std::pair<bool, std::shared_ptr<unit>> a, std::pair<bool, std::shared_ptr<unit>> b)
         { return a.second->get_speed() > b.second->get_speed(); });
+    //^ranges
 
     std::stack<int> wait_queue;
 
     Ai enemy;
 
+    sf::Clock tiktok;
 
     int unit_tour = 0;
     //dane
@@ -171,14 +216,25 @@ int main()
         for (int i = 0; i < 15; i++)
             for (int j = 0; j < 11; j++) {
                 tiles_vector[i][j].tile_properties(window, map, PresedTile);
-                if (map[i][j] >= 0 && map[i][j] <= 2)
+                if (map[i][j] >= 0 && map[i][j] <= 3)
                     tiles_vector[i][j].show_tile(window);
             };
+
         for(auto& entity : loadedEntities) {
+
             sf::Texture entityTexture;
             coords _place = entity.second->get_coords();
             entityTexture = entity.second->get_texture();
-            tiles_vector[_place.x][_place.y].show_entity(window, entityTexture);
+
+            sf::Color unit_color(sf::Color::White);
+            if (!entity.first)
+                unit_color=sf::Color::Red;
+
+            int unit_hp=entity.second->get_hp();
+            int unit_b_hp=entity.second->get_b_hp();
+            int unit_quantity=entity.second->get_quantity();
+
+            tiles_vector[_place.x][_place.y].show_entity(window, entityTexture,unit_color,unit_b_hp,unit_hp,unit_quantity);
         }
 
         defend.check_interaction(window, PresedTile);
@@ -207,7 +263,7 @@ int main()
         }
         //^eventy testowe - juz nie testowe
         
-        if (loadedEntities.empty() != true) {
+        if (!win_lose_condition) {
             
 
             if (drawing_tiles) {
@@ -219,13 +275,14 @@ int main()
                         if (!loadedEntities[unit_tour].first) {
                             enemy.find_enemy(loadedEntities);
                             Ai_buffor = true;
+                            tiktok.restart();
                         }
                         else Ai_buffor = false;
                     }
                 }
                 if (Move_Attack_buffor) {
                     if (loadedEntities[unit_tour].second->check_living(map, loadedEntities)) {
-                        loadedEntities[unit_tour].second->show_attack(map);
+                        loadedEntities[unit_tour].second->show_attack(map, oponent_friend);
                         drawing_tiles = false;
                     }
                 }
@@ -242,23 +299,28 @@ int main()
             if (Mouse_click_buffor||Ai_buffor) {
                 if (!Move_Attack_buffor) {
                     if (Ai_buffor) {
-
+                        if (tiktok.getElapsedTime() >= sf::seconds(0.9f)) {
+                            PresedTile = enemy.seek_enemy(unit_tour, map, loadedEntities);
+                        
+                        }
                     }
                     if (interactionBuffor(PresedTile) && PresedTile.x >= 0) {
                         loadedEntities[unit_tour].second->move(map, PresedTile);
-                        Attack_possibility = loadedEntities[unit_tour].second->check_attack(map);
+                        Attack_possibility = loadedEntities[unit_tour].second->check_attack(map, loadedEntities[unit_tour].first, oponent_friend,loadedEntities );
 
                         Move_Attack_buffor = true;
                         Mouse_click_buffor = false;
                         drawing_tiles = true;
+                        tiktok.restart();
                         clearIBuffor(PresedTile);
                         clearMap(map,loadedEntities);
                     //^interakcja ruchu
                     }
                     if (PresedTile.x==-2) {
-                        Attack_possibility = loadedEntities[unit_tour].second->check_attack(map);
+                        Attack_possibility = loadedEntities[unit_tour].second->check_attack(map, loadedEntities[unit_tour].first, oponent_friend, loadedEntities);
 
                         Move_Attack_buffor = true;
+                        tiktok.restart();
                         Mouse_click_buffor = false;
                         drawing_tiles = true;
                         if(!stack_call)
@@ -280,12 +342,14 @@ int main()
                     //^interakcja pominiecia walki/obrony
                 }   
                 if (Move_Attack_buffor) {
-                    if (Ai_buffor) {
-
-                    }
                     if (Attack_possibility) {
+                        if (Ai_buffor) {
+                            //std::cout << "bot czeka na atak" << std::endl;
+                            if (tiktok.getElapsedTime() >= sf::seconds(0.9f))
+                            PresedTile = enemy.attack_enemy(map);
+                        }
                         if (interactionBuffor(PresedTile) ) {
-                            loadedEntities[unit_tour].second->attack_M(PresedTile, loadedEntities);
+                            loadedEntities[unit_tour].second->attack_M(map, PresedTile, loadedEntities);
 
                             kop_w_kalendarz = true;
                             tour_done = true;
@@ -322,10 +386,11 @@ int main()
                   tour_done = false;
                if (unit_tour >= loadedEntities.size()) {
                   stack_call = true;
+                  std::cout << "zakonczono ture, czas na jednostki z kolejki" << std::endl;
                }
             }
             if (stack_call) {
-                std::cout << "zakonczono ture, czas na czekajki" << std::endl;
+                //std::cout << "zakonczono ture, czas na jednostki z kolejki" << std::endl;
 
                 if (wait_queue.empty()) {
                     unit_tour = 0;
@@ -345,17 +410,36 @@ int main()
                 drawing_tiles = true;
             }
         }
+
        //^strefa placzu i histerii
 
-        /*to do:  
-        1. ruch przeciwnika/nasz ruch
-        2. zrobic porzadek z skala i origin płytek i obiektów bo przyprawia o placz Q-Q?????? //mozliwe ze pozniej
-        3. typy jednostek (walka zasiegowa, zabija chociaz jeden)
-        4. wygrana/przegrana
-
+        /*to do:
+        1. ostatni z tematow laboratoryjnych
+        2. filesystem
         */
 
-        
+        bool enemy_onboard = false;
+        bool ally_onboard = false;
+        for (auto& entity : loadedEntities) {
+            if (!entity.first) {
+                enemy_onboard = true;
+                //sprawdzanie czy pozostal jakis przeciwnik
+            }
+            else {
+                ally_onboard = true;
+                //sprawdzanie czy pozostal jakis sojusznik
+            }
+        }
+        if (ally_onboard && !enemy_onboard) {
+            win_lose_condition = true;
+            window.draw(wygranaS);
+            //wygrana zostaly same dobre
+        }
+        if (!ally_onboard && enemy_onboard) {
+            win_lose_condition = true;
+            window.draw(przegranaS);
+            //przegrana zostaly same zle
+        }
 
         window.display(); //NIe ruszaj
      }

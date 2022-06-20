@@ -144,12 +144,17 @@
     <ClCompile Include="Ai.cpp" />
     <ClCompile Include="functions.cpp" />
     <ClCompile Include="GraTurowa.cpp" />
+    <ClCompile Include="functions_m.ixx" />
+    <ClCompile Include="runner.cpp" />
+    <ClCompile Include="shooter.cpp" />
     <ClCompile Include="tile_b.cpp" />
     <ClCompile Include="unit.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Ai.h" />
     <ClInclude Include="functions.h" />
+    <ClInclude Include="runner.h" />
+    <ClInclude Include="shooter.h" />
     <ClInclude Include="tile_b.h" />
     <ClInclude Include="unit.h" />
   </ItemGroup>
