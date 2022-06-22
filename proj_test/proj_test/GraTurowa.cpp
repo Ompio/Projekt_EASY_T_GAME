@@ -134,8 +134,8 @@ int main()
     coords PresedTile;
     PresedTile.y = 0;
     clearIBuffor(PresedTile);
-    bool Mouse_click_buffor = false;
     bool Move_Attack_buffor = false;
+    bool Mouse_click_buffor = false;
     bool Ai_buffor = false;
     bool Attack_possibility = false;
     bool drawing_tiles = true;
